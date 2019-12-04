@@ -35,8 +35,7 @@ rug(x)
 hist(x, breaks=3)
 hist(x, breaks=30)
 ```
-```{r}
-
+```{r,eval=FALSE}
 #### time for the in class handout!!!!
 ###we have imported a bunch of data! find it in the files area! 
 ###let's put weight_chart.txt into a table
@@ -75,7 +74,7 @@ plot(weight_v_age$Age, weight_v_age$Weight, type="o", pch=15, cex=1.5, lwd=2, yl
 ### add some color!
 plot(weight_v_age$Age, weight_v_age$Weight, type="o", pch=15, cex=1.5, lwd=2, ylim=c(2,10), xlab="age(months)",ylab="weight(kg)", main="Baby weight vs Age", col="pink" )
 ```
-```{r}
+```{r, eval=FALSE}
 
 ##### NOW WE MAKE BAR PLOT
 #read.table("bimm143_05_rstats/feature_counts.txt", header=TRUE)
