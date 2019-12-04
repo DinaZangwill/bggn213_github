@@ -7,24 +7,82 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## GitHub Documents
+our first silly function
+```{r}
+add<-function(x,y=1){
+#sum of the input x and y
+x+y
+}
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
-
-## Including Code
-
-You can include R code in the document as follows:
-
-```{r cars}
-summary(cars)
+```
+```{r}
+add(5)
+#im guessing this means... you are defining x as 5???
+add(c(5,6)) #now there are two x'es, 5 and 6?? appearently not. i do not understand hold on let me try something
+add(c(5,1,4,3)) #nvm it does read all these are different x inputs! it's important to have the c() otherwise it wont work
+#you can redefine y at any time
+add(x=c(5,6,1,5,10), y=100)
+###what if there is some missing data?
+add(c(5,5,NA,7)) ##it's ok! it will just spit out NA
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+
+time to make a function
+```{r}
+min(c(5,2,7,10))
+max(c(5,2,7,10))
+range(c(5,2,7,10))
+#ok so....
+x<-range(c(5,2,7,10))
+x[1]
+x[2]
+x
+###now we make a function, we will call it rescale because we are rescaling a function that we need to use over and over!
+rescale<-function(x){
+  rng<-range(x)
+  (x-rng[1])/(rng[2]-rng[1])
+}
+rescale(1:10)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+rescale2<-function(x){
+  rng<-range(x, na.rm=TRUE)
+  #na.rm
+  (x-rng[1])/(rng[2]-rng[1])
+}
+rescale2(c(5,2,NA,7,10))
+```
+
+
+```{r}
+rescale3 <- function(x, na.rm=TRUE, plot=FALSE) {
+ if(na.rm) {
+ rng <-range(x, na.rm=na.rm)
+ } else {
+ rng <-range(x)
+ }
+ print("Hello")
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ print("is it me you are looking for?")
+ if(plot) {
+ plot(answer, typ="b", lwd=4)
+ }
+ print("I can see it in ...")
+ return(answer)
+}
+#now test it
+rescale3(1:10)
+```
+
+
+
+
+
+
+
+
+
