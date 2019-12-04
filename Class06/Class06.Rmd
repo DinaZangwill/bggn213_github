@@ -78,6 +78,46 @@ rescale3 <- function(x, na.rm=TRUE, plot=FALSE) {
 rescale3(1:10)
 ```
 
+get that library 
+```{r}
+library(bio3d)
+```
+what the fuck is this package?
+```{r}
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA") #we are trimming to only look at chain A and ONLY the carbon atoms ("CA") we prevoiusly defined s1 as the pdb file 4AKE
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA") #this is an error! it should bc s3 not s1
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+###let's take a closer look
+read.pdb("4AKE")
+###
+?trim.pdb
+?read.pdb
+?plotb3
+```
+
+
+question 6 the condensed function
+```{r}
+###name of function will be protein.recall because you are calling up proteins from pdb! 
+protein.recall<-function(p){ #p is standing in for protein (pdb) file 
+  protein<-read.pdb(p) #to load up that pdb file and assign it as protein
+p.trimmed<-trim.pdb(protein,chain="A", elety="CA") #define the trimmed version as p.trimmed. We are doing this because there are specific pices of the protein that we want to look at
+p.b<-p.trimmed$atom$b #i dont know what im assigning here, i guess a specific atom on the trimmed version
+plotb3(p.b, sse=p.trimmed, typ="l", ylab="Bfactor") #this plots it
+
+}
+protein.recall("1E4Y") #you can put any pdb code! remember to put it in quotes! 
+```
+
 
 
 
