@@ -1,0 +1,46 @@
+Untitled
+================
+
+``` r
+### install a few packages
+#BiocManager::install("RCy3")
+#install.packages("igraph")
+```
+
+\#this only works with Cytoscape, so… you need cytoscape open
+
+``` r
+library(RCy3)
+g <- makeSimpleIgraph()
+```
+
+``` r
+#createNetworkFromIgraph(g,"myGraph")
+```
+
+``` r
+#fig <- exportImage(filename="demo", type="png", height=350)
+#fig
+```
+
+``` r
+#knitr::include_graphics("./demo.png")
+```
+
+``` r
+#setVisualStyle("Marquee")
+```
+
+``` r
+#styles <- getVisualStyleNames()
+#styles
+```
+
+``` r
+#setVisualStyle(styles[13])
+#setVisualStyle(styles[18])
+```
+
+``` r
+#plot(g)
+```
