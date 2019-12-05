@@ -1,0 +1,40 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#prepare protein structure for docking
+we want to download the 1HSG PDB sturcuture to produce a protein only and ligand only new seperate PDB files
+```{r}
+library(bio3d)
+get.pdb("1hsg")
+```
+Produce "1hsg_protein.pdb" and "1hsg_ligand.pdb" files
+```{r}
+pdb<- read.pdb("1hsg.pdb")
+pdb
+```
+
+```{r}
+ligand<- atom.select(pdb, "ligand", value=TRUE)
+write.pdb(ligand, file="1hsg_ligand.pdb")
+```
+
+```{r}
+protein<-atom.select(pdb,"protein", value=TRUE)
+write.pdb(protein, file="1hsg_protein.pdb")
+```
+```{r}
+#res <- read.pdb("all.pdb", multi=TRUE)
+#write.pdb(res, "results.pdb")
+```
+```{r}
+# res <- read.pdb("all.pdb", multi=TRUE)
+#ori <- read.pdb("ligand.pdbqt")
+#rmsd(ori, res)
+```
+
