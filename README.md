@@ -12,5 +12,5 @@ Classwork from Fall 2019 at UC San Diego
 - Class14 [Transcriptomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class12/Class14.md)
 - Class15 [Genomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class15/Class15.md)
 - Class16[Biological network analysis](https://github.com/DinaZangwill/bggn213_github/blob/master/Class16/Class16.md)
-- Class17[UNIX FOR DUMMIES](https://github.com/DinaZangwill/bggn213_github/blob/master/Class17/Class17.md)
-- Class18[Cancer genomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class18/Class17.md)
+- Class17[UNIX FOR DUMMIES](https://github.com/DinaZangwill/bggn213_github/blob/master/Class18/Class17.md)
+- Class18[Cancer genomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class17/Class17.md)
