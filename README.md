@@ -9,8 +9,8 @@ Classwork from Fall 2019 at UC San Diego
 - Class09 [PCA](https://github.com/DinaZangwill/bggn213_github/blob/master/Class09/Class09.md)
 - Class10 [GIT GOOD](https://github.com/DinaZangwill/bggn213_github/blob/master/Class10/Class10.md)
 - Class11 [structure](https://github.com/DinaZangwill/bggn213_github/blob/master/Class11/Class11.md
-- Class14 [
-- Class15
-- Class16
-- Class17
-- Class18
+- Class14 [Transcriptomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class12/Class14.md)
+- Class15 [Genomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class15/Class15.md)
+- Class16[Biological network analysis](https://github.com/DinaZangwill/bggn213_github/blob/master/Class16/Class16.md)
+- Class17[UNIX FOR DUMMIES](https://github.com/DinaZangwill/bggn213_github/blob/master/Class17/Class17.md)
+- Class18[Cancer genomics](https://github.com/DinaZangwill/bggn213_github/blob/master/Class18/Class17.md)
