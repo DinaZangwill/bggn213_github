@@ -1,0 +1,196 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(DESeq2)
+```
+## ok we got DESeq ready
+## now to load our data!
+#also what is out data?? Our data 
+#The data for for hands-on session comes from GEO entry: GSE37704, which is associated with the following publication:
+
+#Trapnell C, Hendrickson DG, Sauvageau M, Goff L et al. "Differential analysis of gene regulation at transcript resolution with RNA-seq". Nat Biotechnol 2013 Jan;31(1):46-53. PMID: 23222703
+
+#The authors report on differential analysis of lung fibroblasts in response to loss of the developmental transcription factor HOXA1.
+```{r}
+metaFile<-"GSE37704_metadata.csv"
+countFile<-"GSE37704_featurecounts.csv"
+```
+### adjust out files i guess??? with read.csv)
+## first for our columns, then for our rows?? what is the difference between colData and countData???
+#countData is the table of results, the count matric, the numner of reads coming from each gene for each sample
+#ColData describes the metadata about the columns of out countdata! it's just the columns corresponding to the data
+
+```{r}
+colData=read.csv(metaFile, row.names=1) #sets row names to be the first column
+head(colData)
+```
+
+```{r}
+countData=read.csv(countFile, row.names=1)
+head(countData)
+```
+##Before we move on we need to get rid of the "length" column! the first column of countData (because you can see, it does not exist in the colData!!! )
+```{r}
+countData.2 <- as.matrix(countData[,2:7])
+head(countData.2)
+```
+### we need to filter out the 0 counts, as they are not differentially expressed
+```{r}
+rows0<-rowSums(countData.2)==0
+```
+## ok now we want all FALSE for our purposes 
+
+```{r}
+countData.2[rowSums(countData.2) > 0,]
+## assign it
+countData.3<-countData.2[rowSums(countData.2) > 0,]
+nrow(countData.3) ### about 16000 genes left 
+```
+
+### wow that's still a lot of genes! 
+## yes we want to plot it but holy shit. too many!!
+#SO WHAT DO WE DO???
+#we need to do PCA [PRINCIPAL COMPONENT ANALYSIS]
+#using prcomp
+#we need to transpose the data!!!)
+```{r}
+pc<-prcomp(t(countData.3))
+plot(pc)
+summary(pc)
+
+```
+
+### PCA score plot of PC1 and PC2
+```{r}
+plot(pc$x[,1:2]) #$x is the attribute... i dont know what that means
+## add some color to know which are control and which are experimental (kd)
+mycols<- c(rep("blue", 3), rep("red", 3)) ##blue is control and red is kd, if you look at colData the first three are control, the second 3 are kd, so three and the next three. 
+plot(pc$x[,1:2], col=mycols)
+```
+## our goal is to make a volcano plot of the log2 foldchange and -log(pValue)
+##uses DESeq2
+```{r}
+dds = DESeqDataSetFromMatrix(countData=countData.3, #telling DESeq what the count data is
+                             colData=colData, ##and the colData! this is why you named things colData and countData
+                             design=~condition) ### what does condition??? ah that comes from colData
+dds.2 = DESeq(dds)
+```
+### out results
+```{r}
+r.dds.2<-results(dds.2)
+r.dds.2
+summary(r.dds.2)
+```
+## volcano plot time
+```{r}
+plot( r.dds.2$log2FoldChange, -log(r.dds.2$padj) )
+```
+## we want a better plot
+
+```{r}
+# Make a color vector for all genes
+mycols <- rep("gray", nrow(r.dds.2) )
+
+# Color red the genes with absolute fold change above 2
+mycols[ abs(r.dds.2$log2FoldChange) > 2 ] <- "red"
+
+# Color blue those with adjusted p-value less than 0.01
+#  and absolute fold change more than 2
+inds <- (r.dds.2$padj <0.01) & (abs(r.dds.2$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+plot( r.dds.2$log2FoldChange, -log(r.dds.2$padj), col=mycols, xlab="Log2(FoldChange)", ylab="-Log(P-value)" )
+```
+### gene annotation
+#what is this???
+## Add annotation 
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+
+r.dds.2$symbol = mapIds(org.Hs.eg.db,
+                    keys=row.names(r.dds.2), ## where are your gene IDs?
+                    keytype="ENSEMBL", ### the format of the IDs is ensembl (a string of numbers)
+                    column="SYMBOL", ## what NEW ID format do i want to use? (symbol is the gene's codename)
+                    multiVals="first")
+
+r.dds.2$entrez = mapIds(org.Hs.eg.db,
+                    keys=row.names(r.dds.2),
+                    keytype="ENSEMBL",
+                    column="ENTREZID",
+                    multiVals="first")
+
+```
+
+```{r}
+head(r.dds.2)
+```
+### time to analyze pathways!!! with some cool packages 
+###BiocManager::install( c("pathview", "gage", "gageData") )
+
+```{r}
+###BiocManager::install( c("pathview", "gage", "gageData") ) 
+```
+## it will get us a list of enriched pathways, and we will use pathview to draw pathway diagrams! these will be shaded to degree of up/down regulation
+```{r}
+library(gage)
+library(gageData)
+
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+
+# Focus on signaling and metabolic pathways only
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+
+# Examine the first 3 pathways
+head(kegg.sets.hs, 3)
+```
+The main gage() function requires a named vector of fold changes, where the names of the values are the Entrez gene IDs.
+
+Note that we used the mapIDs() function above to obtain Entrez gene IDs (stored in res$entrez) and we have the fold change results from DESeq2 analysis (stored in res$log2FoldChange).
+```{r}
+foldchanges = r.dds.2$log2FoldChange
+names(foldchanges) = r.dds.2$entrez
+head(foldchanges)
+```
+### now let's run the gage() function
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+```
+```{r}
+attributes(keggres)
+```
+### lets look at the downregulated pathways 
+```{r}
+keggres$less
+```
+
+```{r}
+library(pathview)
+pathview(gene.data=foldchanges, pathway.id="hsa04110") ##the pathway.id is from the list we saw in keggres$less for cell cycle 
+```
+![My First Pathway](./hsa04110.pathview.png)
+### GENE ONTOLOGY TIME
+
+We can also do a similar procedure with gene ontology. Similar to above, go.sets.hs has all GO terms. go.subs.hs is a named list containing indexes for the BP, CC, and MF ontologies. Let’s focus on BP (a.k.a Biological Process) here.
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+
+# Focus on Biological Process subset of GO (BP)
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+
