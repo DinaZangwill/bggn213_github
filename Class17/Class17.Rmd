@@ -1,0 +1,129 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##oh hey! instead of writing bio3d::function you can library(bio3d) and all the functions can be used as normal
+#3. Querying the GDC from R
+#We will typically start our interaction with the GDC by searching the resource to find 
+#data that we are interested in investigating further. In GDC speak this is called “Querying GDC metadata”. 
+#Metadata here refers to the extra descriptive information associated with the actual patient data (i.e. ‘cases’) in the GDC.
+
+#For example: Our query might be 
+#‘find how many patients were studied for each major project’ 
+#or 
+#‘find and download all gene expression quantification data files for all pancreatic cancer patients’. 
+#We will answer both of these questions below.
+#The are four main sets of metadata that we can query, 
+#namely projects(), cases(), files(), and annotations(). 
+#We will start with projects()
+
+```{r}
+#projects <- getGDCprojects()
+
+#head(projects)
+```
+#If you use the View(projects) function call you can see all the project names (such as Neuroblastoma, Pancreatic Adenocarcinoma, etc.) along with their project IDs (such as TARGET-NBL, TCGA-PAAD, etc.) and associated information.
+
+```{r}
+#View(projects)
+```
+
+#Moving onto cases() we can use an example from the package associated publication to answer our first from question above (i.e. find the number of cases/patients across different projects within the GDC):
+```{r}
+#cases_by_project <- cases() %>%
+ # facet("project.project_id") %>%
+  #aggregations()
+#head(cases_by_project)
+```
+#Note that the facet() and aggregations() functions here are from the GenomicDataCommons package and act to group all cases by the project id and then count them up.
+
+#If you use the View() function on our new cases_by_project object you will find that the data we are after is accessible via cases_by_project$project.project_id.
+
+
+#### Design a Cancer Vaccine
+
+#Q1: Identify sequence regions that contain all 9-mer peptides that are only found in the tumor. Hint: You will need to first identify the sites of mutation in the above sequences and then extract the surrounding subsequence region. This subsequence should encompass all possible 9-mers in the tumor derived sequence. In other words extract the subsequence from 8 residues before and 8 residues after all point mutations in the tumor sequence.
+
+
+## read in the alignment
+#We start by 1. reading the provided sequences (lecture18_sequences.fa) into R, then 2. aligning, 3. looking for sites of cancer specific mutation (i.e. differences between the two sequences), and finally 4. outputing all 9-mer contaning subsequences encompasing these mutant sites.
+```{r}
+library(bio3d)
+read.fasta("lecture18_sequences.fa")
+#assign it
+p53_alignment<-read.fasta("lecture18_sequences.fa")
+```
+#We can optionally align these sequences to make sure we have residue position correspondences correctly mapped between wt and mutant (incase of indels) with the following code. However, this appears to be unnecessary in this case as the provided sequences are already aligned.
+##THIS IS FOR ALIGNING SEQUENCES, BUT WHAT IF YOU HAD TWO SEPERATE FILES??)
+
+#seqs <- bio3d::seqaln(seqs, exe="filepath for muscle")
+```{r}
+p53_alignment <- bio3d::seqaln(p53_alignment, exefile="/Users/DinaZ/Desktop/UCSD_Documents/BioInformatics_resource_1_files/muscle3.8.31_i86darwin32")
+p53_alignment
+```
+#Next we calculate identity per equivalent (i.e. aligned) position and then use this information to find non identical sites that do not contain gaps (i.e. indels).
+
+## Calculate positional identity scores
+#ide <- conserv(seqs$ali, method="identity")
+#mutant.sites <- which(ide < 1) 
+```{r}
+p53_ide<-conserv(p53_alignment$ali, method="identity") #our method is identity but there are others
+p53_ide#look, most are 1.0, but we want to look for the less than 1.0 which are the sites
+p53_ide<1
+which(p53_ide<1)
+mutant_sites<-which(p53_ide<1) 
+##let's look at that first mutation site
+mutant_sites[1] #oh! it's #41
+mutant_sites #ugh, all the "gaps" are annoying, bc the sequence just ends so there are so many gaps!!! we want them gone!!
+p53_alignment$ali[,mutant_sites]
+p53_alignment$ali[2,c((mutant_sites-8):(mutant_sites+8))]
+```
+
+
+## Exclude gap possitions from analysis
+#gaps <- gap.inspect(seqs)
+#mutant.sites <- mutant.sites[mutant.sites %in% gaps$f.inds]
+```{r}
+p53_gaps<-gap.inspect(p53_alignment)
+p53_mutant_sites<-mutant_sites[mutant_sites %in% p53_gaps$f.inds]
+p53_mutant_sites
+```
+
+#mutant.sites
+#We can use these indices in mutant.sites to extract subsequences as required for the hands-on session. First however we come up with suitable names for these subsequences based on the mutation. This will help us later to make sense and keep track of our results.
+## Make a "names" label for our output sequences (one per mutant)
+#mutant.names <- paste0(seqs$ali["P53_wt",mutant.sites],
+                       #mutant.sites,
+                       #seqs$ali["P53_mutant",mutant.sites])
+
+#mutant.names
+```{r}
+p53_mutant_names<- paste0(p53_alignment$ali["P53_wt",p53_mutant_sites],
+                          p53_mutant_sites,
+                          p53_alignment$ali["P53_mutant", p53_mutant_sites])
+p53_mutant_names
+```
+#for once you have your mutant subsequences you want to predict MCH binding Afinity! there is an online tool for this
+http://tools.iedb.org/mhci/ 
+## once you have your best binders BLAST for the human proteome bc you dont want it to target something else! (obviously if it's getting hits for tumor antigens, thats a GOOD THING)
+
+### how to align sequences that are not!
+```{r, eval=FALSE}
+s1<-read.fasta("seq1.fa")
+s2<-read.fasta("seq2.fa")
+s3<-read.fasta("seq3.fa")
+### you can do this for as many as you want!
+#now bind them!
+s_compiled<-seqbind(s1,s2,s3,...) #for all of the sequences
+###OR in your TERMINAL
+##make sure you are in the folder of ONLY YOUR SEQUENCES TO BE ALGIGNED (ls)
+##cat *.fa or cat *.fasta will compile all the fasta files
+##cat *.fasta > my_compiled_sequences
+#the > is a redirect, telling it to make a file
+###uhhh idk what to do next
+```
+
