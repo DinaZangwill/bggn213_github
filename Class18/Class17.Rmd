@@ -1,0 +1,132 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Terminal vs shell
+#### shell is a command line interafce that allows user to interact with the operating system by typing commands
+### terminal: a graphical interface to the shell (window you get with you launch git/Bash)
+### we are learning shell
+
+### pwd: tells you where you are
+### ls: list files and directories where you arecd
+## cd: takes you to the directory you tell it to
+### mkdir: make directory. makes a new folder! 
+###### DONT USE SPACES!! if you do "mkdir class 17" you will get a folder called class and 17. you need class17 to make the folder
+
+
+### delete a folder with: rm (BE CAREFUL!!! NEVER USE THIS!! IT WILL DELETE YOUR SHIT!!! DO NOT!!! )
+### to DOWNLOAD things: curl -O https://bioboot.github.io/bggn213_S18/class-material/bggn213_01_unix.zip
+### to unzip a file: unzip bggn213_01_unix.zip
+
+### need help in UNIX? man [command] will tell you what the command does (do not put the [ ]). 
+
+### Inspecting Text Files
+### less [text file]  to visualize a text file
+### use arrow keys, pagedown/up with space and b
+### search by typing "/"
+### quit by typing q
+
+### creating text tiles 
+### need text editor such as nano, emacs, or bi
+## with the "touch" command (> touch a_file_)
+## from the command line with "cat" or "echo" and "redirection"
+### nano is a simple text editor reccommended for first time uesrs 
+## lets make a text file with nano
+### > nano yourfilename.txt
+### you can put anything into the body of that text file! 
+
+#### file control! with pipe! "|", >, <
+### > will write to file (redirect output)
+### < read from file (redirect input)
+### | is pipe
+### ps (processes! tells you what is running)
+## top
+## kill (kills a process)
+## sudo
+### apt-get
+### scp
+### less
+## curl
+### ls
+
+
+### we are analyzing a FASTA file i guess???
+# cd data
+#ls
+## now we use the POWER OF grep
+#grep --color "GESGKS" seqdump.fasta
+#Dinas-MacBook-Air-2:data DinaZ$ grep -v "^>" seqdump.fasta | grep --color "[^ATGC]"
+#REVKLLLLGAGESGKSTIVKQMKIIHEAGYSEEECKQYKAVVYSNTIQSIIAIIRAMGRLKIDFGDAARADDARQLFVLAGAAEEGFMTAELAGVIKRLWKDSGVQACFNRSREYQLNDSAAYYLNDLDRIAQPNYIPTQQDVLRTRVKTTGIVETHFTFKDLHFKMFDVGAQRSERKKWIHCFEGVTAIIFCVALSDYDLVLAEDEEMNRMHESMKLFDSICNNKWFTDTSIILFLNKKDLFEEKIKKSPLTICYPEYAGSNTYEEAAAYIQCQFEDLNKRKDTKEIYTHFTCATDTKNVQFVFDAVTDVIIKNNL
+#Dinas-MacBook-Air-2:data DinaZ$
+
+### pipes avoid unecessary input/output 
+### no i still dont get the ">" or "<" stuff oops
+### like, i get the pipeline but uhhhh not how to use it oops
+
+#### hands on time!!!
+https://bioboot.github.io/bggn213_F19/class-material/17_blast-01/
+
+## USING REMOTE MACHINES (sometimes our computers are not powerful enough, or the large amount data is on a server and you do not want and cannot get such data on your computer! it's just too much! )
+
+## secure shell (ssh)
+#i am using IP_ADDRESS # 38 from the class site: 34.221.177.237
+ssh -i ~/Downloads/ssh-key ubuntu@IP_ADDRESS
+
+### grep -c ">" mouse.1.protein.faa to check how many sequences are in the file
+
+#Let’s take the first two sequences and save them to a new file that we will create called mm-first.fa. We’ll do this using output redirection with ‘>’, which says “take all the output and put it into this file here.”
+
+head -11 mouse.1.protein.faa > mm-first.fa
+
+You can do less mm-first.fa to see the contents of that file (or more mm-first.fa). Type space-bar to move down and ‘q’ to get out of paging mode.
+
+
+Make sure you have run the correct command above with the one ‘>’ symbol so you only have two sequences in your new file.
+
+Now let’s BLAST these two sequences against the entire zebrafish protein data set. First, we need to tell BLAST that the zebrafish sequences are (a) a database, and (b) a protein database. That’s done by calling ‘makeblastdb’:
+
+makeblastdb -in zebrafish.1.protein.faa -dbtype prot
+
+#Next, we call protein BLAST (blastp) to do the search:
+
+blastp -query mm-first.fa -db zebrafish.1.protein.faa
+This should run pretty quickly, but you’re going to get a lot of output!! To save it to a file instead of watching it go past on the screen, ask BLAST to save the output to a file that we’ll name mm-first.x.zebrafish.txt:
+
+blastp -query mm-first.fa -db zebrafish.1.protein.faa -out mm-first.x.zebrafish.txt
+and then you can ‘page’ through this file at your leisure by typing:
+
+less mm-first.x.zebrafish.txt
+
+#Let’s do some more sequences (this one will take a little longer to run):
+
+head -497 mouse.1.protein.faa > mm-second.fa
+(Q.How would you determine how many sequences are in the mm-second.fa file?)
+
+Now run BLAST with this file as a query and the zebrafish database
+
+blastp -query mm-second.fa -db zebrafish.1.protein.faa -out mm-second.x.zebrafish.txt
+This will compare the first 81 sequences. You can look at the output file with:
+
+less mm-second.x.zebrafish.txt
+#Last, but not least, let’s generate a more machine-readable version of these results:
+
+blastp -query mm-second.fa -db zebrafish.1.protein.faa -out mm-second.x.zebrafish.tsv -outfmt 6
+
+#You now have a decision to make: do you want to further analyze your results on this remote machine or transfer your current working results back to your own machine for local analysis. Let’s do the later first and in so doing demonstrate how to transfer data between your remote AWS instance (i.e. remote server) and your local machine (i.e. your own laptop).
+
+For data transfer we will first demonstrate the use of scp for Secure CoPy.
+
+Back on your LOCAL machine in a new terminal go to a directory where you want to store the incoming data. For example, I am working in a directory on my Desktop called class17
+cd /Users/DinaZ/Desktop/UCSD_Documents/CLASSES/BioInformatics/Projects/BioInformatics_DZ_github/class17
+
+# Use a location directory that exists and is meaningful for you!
+cd ~/Desktop/class17
+
+Now still on your local machine use scp to transfer the file or files you want copied across (N.B. You will need to substitute the IP address for the remote machine you are using for the YOUR_IP_ADDRESS in the command here just as we did with our initial login):
+
+scp -i ~/Downloads/ssh-key ubuntu@YOUR_IP_ADDRESS:~/work/mm-second.x.zebrafish.tsv .
+Note. Like cp and similar tools, the source is always the first argument, and the destination is always the second argument.
