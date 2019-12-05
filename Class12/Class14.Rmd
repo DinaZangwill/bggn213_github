@@ -1,0 +1,202 @@
+---
+title: "Class12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## set up BioConductor DESeq2
+
+```{r eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install()
+BiocManager::install("DESeq2")
+```
+
+
+## Data for today's class saved into the project
+
+```{r}
+counts<- read.csv("airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata<- read.csv("airway_metadata.csv", stringsAsFactors = FALSE)
+```
+## let's have a peak
+```{r}
+head(counts)
+```
+
+### how many genes do we have 
+```{r}
+nrow(counts)
+```
+
+### how many experiments 
+```{r}
+ncol(counts)-1
+```
+
+### what are our controls ??? we check the metadata 
+### let's make sure the metadata ID col matches the colnames of counts
+
+```{r}
+colnames(counts)[-1]
+```
+
+```{r}
+metadata$id
+```
+
+```{r}
+(colnames(counts)[-1])== (metadata$id)
+```
+### if you have a lage metadata you can condense it 
+```{r}
+all((colnames(counts)[-1])== (metadata$id))
+```
+
+## analysis compare the control to drug tested
+## first we need ot access the columns of our countDaa that are control and find their mean
+
+```{r}
+metadata$dex
+```
+### but i want the specific columns to access!!!
+```{r}
+control_id<-metadata[ metadata$dex=="control", ]$id
+control_id
+```
+
+```{r}
+head(counts[ ,control_id])
+```
+#### ok we want the mean across the control rows!!!
+```{r}
+control_mean<-rowSums(counts[,control_id])/(length(control_id))
+names(control_mean)<- counts$ensgene
+```
+## now for the treated
+```{r}
+treated_id<-metadata[ metadata$dex=="treated", ]$id
+treated_id
+```
+
+```{r}
+head(counts[ ,treated_id])
+```
+##now for the treated
+```{r}
+treated_mean<-rowSums(counts[,treated_id])/(length(treated_id))
+names(treated_mean)<- counts$ensgene
+```
+### store them together!!
+```{r}
+meancounts<- data.frame(control_mean, treated_mean)
+```
+### plot control vs tested!!
+
+```{r}
+plot(meancounts$control_mean, meancounts$treated_mean)
+```
+### well that's no good!!! so let's plot it on a log scale (bc like, only a few have high expression! so it willbe easier to visualize)
+```{r}
+plot(meancounts$control_mean, meancounts$treated_mean, log="xy")
+```
+
+## points that are abberant (have differential expression) are noticably above or below the dark center line
+
+### now lets get the fold change! if fold change is 0 then there was no difference
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated_mean"]/meancounts[,"control_mean"])
+head(meancounts)
+```
+#### the next step is to EXCLUDE THE 0 VALUES!!! we DON'T WANT THEM!!! 
+
+###
+```{r}
+x<- data.frame(happy=c(5,0,4,3), sad=c(0,5,5,0))
+x==0
+which(x==0, arr.ind =TRUE)
+unique(which(x==0, arr.ind =TRUE)[,1])
+```
+## now let's apply this to our counts!
+```{r}
+#which(meancounts==0, arr.ind = TRUE)
+to_rm<-unique(which(meancounts[,1:2]==0, arr.ind =TRUE)[,1])
+zero_vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+to.rm <- unique(zero_vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+### fold change time !!! we have set a threshold 
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+```
+
+```{r}
+sum(up.ind)
+```
+```{r}
+head( mycounts[up.ind,] )
+```
+
+```{r}
+#columns(org.Hs.eg.db)
+#mycounts$symbol <- mapIds(org.Hs.eg.db,
+                     #keys=row.names(mycounts), # Our genenames
+                     #keytype="ENSEMBL",        # The format of our genenames
+                     #column="SYMBOL",          # The new format we want to add
+                     #multiVals="first")
+#head(mycounts)
+```
+### we are gonna make our summary plot!!
+
+### also hey remember that fold change is great but you need it to be significant! let's work with that
+
+### DESeq Analysis 
+```{r}
+library(DESeq2)
+```
+```{r}
+## ok time to do some DESeq
+#set up our obejct for DESeq analysis 
+
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+```{r}
+dds<- DESeq(dds)
+res<-results(dds)
+res
+summary(res)
+```
+
+### cool let's plot it!!! 
+#VOLCANO PLOT
+
+```{r}
+plot(res$log2FoldChange, res$padj)
+```
+### ok but that's no good! we want to see the small p values easily!!
+#take the log! but the -log of res$padj
+# in this way, the larger numbers are the smallest p values
+```{r}
+plot(res$log2FoldChange, -log(res$padj))
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.05), col="gray", lty=2)
+```
+#### let's color it 
+```{r}
+mycols<- rep("grey", length(res$padj))
+mycols[abs(res$log2FoldChange)>2]= "blue"
+mycols[ res$padj > 0.05 ]="red"
+plot(res$log2FoldChange, -log(res$padj), col=mycols)
+
+```
+
