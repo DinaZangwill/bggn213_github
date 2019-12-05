@@ -7,11 +7,9 @@ Classwork from Fall 2019 at UC San Diego
 - Class07 [R Packages](https://github.com/DinaZangwill/bggn213_github/blob/master/Class07/Class07.md)
 - Class08 [Clustering of All Kinds](https://github.com/DinaZangwill/bggn213_github/blob/master/Class08/Class08.md)
 - Class09 [PCA](https://github.com/DinaZangwill/bggn213_github/blob/master/Class09/Class09.md)
-- Class10
-- Class11
-- Class12
-- Class13
-- Class14
+- Class10 [GIT GOOD](https://github.com/DinaZangwill/bggn213_github/blob/master/Class10/Class10.md)
+- Class11 [structure](https://github.com/DinaZangwill/bggn213_github/blob/master/Class11/Class11.md
+- Class14 [
 - Class15
 - Class16
 - Class17
