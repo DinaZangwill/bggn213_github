@@ -1,0 +1,162 @@
+Untitled
+================
+
+\#MORE ON PCA\!\!\! PRINCIPAL COMPONENT ANALYSIS\!\!\! LOOK AT SESSION 5
+AND NOTES FOR 10-25-19
+
+``` r
+#fna.data <- "data/WisconsinCancer.csv"
+#wisc.df <- read.csv("WisconsinCancer.csv")
+#head(wisc.df)
+### dang this is BIG
+```
+
+### OUR DATA IS CANCER RELATED\!\!\! IT’S RELEVANT TO YOUR LIFE\!
+
+### DANG THIS DATA IS A LOT\!\!\! WHAT DO I DO\!\!\! how do I examine data from so many patients with so many results\!\!\!
+
+Here we examine r nrow(wisc\_df) patient samples \#this gives us the
+number of patients when opening the data somehow
+
+``` r
+#table(wisc.df$diagnosis) #giving us the types of diagnosis 
+```
+
+in this data-set we have r x\[“M”\] cancer and r\[“B”\] non-cancer
+patients \#\# in this data-set we have rx\["\_mean"\]\`
+columns
+
+### we dont want ID or diagnosis or thelast column, X. so we are only going to use columns 3 to 32 3:32
+
+so no `id` `diagnosis` or `X`
+
+``` r
+#wisc.data <- as.matrix(wisc.df[3:32])
+#wisc.data
+```
+
+> Q, now many variables/features in the data are suffixed with \_mean?
+> like, how many columns? colnames
+
+``` r
+#colnames(wisc.df)
+### that's cool but i dont want to count! grep the rescue! grep(pattern,x, ...)
+## what's our patter? it's _mean
+#grep("_mean", colnames(wisc.df)) #ah ha! 3 through 12! that's 10 columns
+#we can do better though 
+#grep("_mean", colnames(wisc.df), value = TRUE)
+##but we can get a raw number ;)
+#length(grep("_mean", colnames(wisc.df), value = TRUE))
+```
+
+### anyways this is a crazy data set\! let’s to PCA to help us\!
+
+> Q does the data need to be scaled? \#considering some of the numbers
+> are decimals less than 1 and others are in the hundreds…
+yeah
+
+## check the sd of each column
+
+``` r
+#colMeans(wisc.data)
+```
+
+``` r
+#round(apply(wisc.data, 2, sd,), 3) #the 2 is the columns. 1 would mean the rows
+```
+
+### YES WE NEED TO SCALE THE DATA\! bc the standard deviantions are crazy different
+
+\#\#SO LET’S DO OUR PCA
+
+``` r
+#wisc.pr <- prcomp(wisc.data, scale=TRUE)
+#summary(wisc.pr) #you can see that accumulation of the proportion, that you can rep 80% of the data with the first three PCs, and 90% with the first 7 PCs
+```
+
+``` r
+##makeing the PC plot! what component do we need? look at wisc.pr$ it has a few options
+#we are looking to plot PC 1 vs PC 2 and color by M/B
+#plot(wisc.pr$rotation)
+#plot(wisc.pr$x)
+### or do this!
+#plot(wisc.pr$x[,1], wisc.pr$x[,2])
+## or!!!
+#plot(wisc.pr$x[,1:2] )
+#but let's color it
+#plot(wisc.pr$x[,1:2], col=wisc.df$diagnosis)
+```
+
+> Q how many PCs are required to describe at least 70% of the data?
+
+``` r
+#x<- summary(wisc.pr)
+#x$importance[3,]>0.7
+#which(x$importance[3,]>0.7)[1]
+```
+
+BACK TO H CLUSTERING I GUESS\!\!\!
+
+### scale the wisc.data data.scaled
+
+``` r
+#data.scaled<- scale(wisc.data)
+### calculate euclidean distance
+#data.dist<- dist(data.scaled)
+### then create the h cluster
+#wisc.hclust<- hclust(data.dist, method="complete")
+```
+
+## plot it
+
+``` r
+#plot(wisc.hclust)
+#abline(wisc.hclust, col="red", lty=2, h=19)
+```
+
+### lets move on to cutting the tree. Use cutree() to cut the tree so that it has 4 clusters.
+
+``` r
+#wisc.hclust.clusters <- cutree(wisc.hclust, k=4)
+#### that's weird. i think i did it wrong :()
+#plot(wisc.hclust.clusters)
+#table(wisc.hclust.clusters, wisc.df$diagnosis)
+```
+
+### Clutering PCA results\!\!\! YAY\!\!\!\!
+
+``` r
+#Using the minimum number of principal components required to describe at least 90%  of the variability (known to be PCs 1-7) in the data, create a hierarchical clustering model with the linkage method="ward.D2". We use Ward's criterion here because it is based on multidimensional variance like principal components analysis. Assign the results to wisc.pr.hclust.
+#wisc.pr.hclust<- hclust(dist(wisc.pr$x[,1:7]), method= "ward.D2" )
+#plot(wisc.pr.hclust)
+```
+
+``` r
+#grps<- cutree(wisc.pr.hclust, k=70)
+#table(grps)
+```
+
+``` r
+#table(grps, wisc.df$diagnosis)
+```
+
+``` r
+#plot(wisc.pr$x[,1:2], col=grps)
+```
+
+``` r
+#plot(wisc.pr$x[,1:2], col=wisc.df$diagnosis)
+```
+
+Note the color swap here as the hclust cluster 1 is mostly “M” and
+cluster 2 is mostly “B” as we saw from the results of calling
+table(grps, diagnosis). To match things up we can turn our groups into a
+factor and reorder the levels so cluster 2 comes first
+
+``` r
+#g <- as.factor(grps)
+#levels(g)
+#g <- relevel(g,2)
+#levels(g)
+#plot(wisc.pr$x[,1:2], col=g)
+```
